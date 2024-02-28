@@ -1,10 +1,10 @@
 # 環境構築
 1. AWS CDKをダウンロード(https://docs.aws.amazon.com/ja_jp/cdk/v2/guide/getting_started.html)
-2. AWSアカウントを用意
+2. AWSアカウントの用意、Dockerアプリケーションをインストール(＊AWSは利用すると多少の課金が発生します)
 3. githubからコードをcloneする
 
 ```
-git clone xxxx
+git clone git@github.com:is-tech-kitakatsu/DynamodbAccessable.git
 ```
 4. パッケージインストール
 
@@ -29,7 +29,7 @@ cdk deproy
 - `npm run lint` lint実行(--fixオプションを使えば自動修正)
 
 ## デプロイ
-
+初回立ち上げ時および、変更のデプロイの両方で利用します
 ```
 cdk deploy
 ```
@@ -73,7 +73,64 @@ export class UserService extends DynamodbAccessable(
 }
 ```
 
-3. 利用する
+3.Enityクラスに基礎実装をする
+コンストラクタで定義する属性値がそのままDynamoDBに保存する対象になります。
+- DynamoDBで定義するHashキーとSortキーをgetKeyを実装してください。(これがないとデータのReadができません)
+- validateを実装してください。
+
+createやupdateでDB操作を行う前にデータの生合成をチェックするための関数です。バリデーションエラーの場合はerrorsプロパティにエラー内容をセットします。
+
+```Typescript
+export class Todo extends EntityBase {
+  constructor(
+    public id: string | undefined,
+    public userId: string,
+    public status: Status,
+    public title?: string,
+    public describe?: string,
+    public doneAt?: number,
+    public createdAt?: number | undefined,
+    public updatedAt?: number | undefined,
+  ) {
+    super(id, createdAt, updatedAt);
+    this.userId = userId;
+    this.status = status;
+    this.title = title;
+    this.describe = describe;
+    this.doneAt = doneAt;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
+
+  getKey(): Record<
+    string, 
+    any
+  > {
+    return {
+      userId: this.userId,
+      createdAt: this.createdAt
+    }
+  }
+
+  validate() {
+    if (this.title && this.title.length > 100) {
+      this.errors.push({ title: '100文字以上は入力できません' });
+    }
+
+    // check presence
+    const requiredAttrs: (keyof Todo)[] = ['status', 'userId'];
+    requiredAttrs.forEach((attr) => {
+      if (!this[attr]) {
+        this.errors.push({ [attr]: '入力してください' });
+      }
+    });
+
+    return !this.hasError();
+  }
+}
+```
+
+4. 利用する
 
 定義が済んだらあとは呼び出すだけです。拡張されたServiceクラスは以下の関数が使えるようになります。
 
