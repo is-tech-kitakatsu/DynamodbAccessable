@@ -75,7 +75,7 @@ export class UserService extends DynamodbAccessable(
 
 3.Enityクラスに基礎実装をする
 コンストラクタで定義する属性値がそのままDynamoDBに保存する対象になります。
-- DynamoDBで定義するHashキーとSortキーをgetKeyを実装してください。(これがないとデータのReadができません)
+- DynamoDBで定義するHashキーとSortキーをgetKeyを実装してください。(これがないとデータの特定ができません)
 - validateを実装してください。
 
 createやupdateでDB操作を行う前にデータの生合成をチェックするための関数です。バリデーションエラーの場合はerrorsプロパティにエラー内容をセットします。
