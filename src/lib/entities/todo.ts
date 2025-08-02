@@ -40,6 +40,8 @@ export class Todo extends EntityBase {
       this.errors.push({ title: '100文字以上は入力できません' });
     }
 
+    console.log('test');
+
     // check presence
     const requiredAttrs: (keyof Todo)[] = ['status', 'userId'];
     requiredAttrs.forEach((attr) => {
@@ -47,6 +49,7 @@ export class Todo extends EntityBase {
         this.errors.push({ [attr]: '入力してください' });
       }
     });
+
 
     return !this.hasError();
   }
